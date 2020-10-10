@@ -54,3 +54,91 @@ $(document).ready(function () {
         
         cityName.append(weatherImg, currentDate, windData, humidityData, tempData, tempDataF);
         $("container").append(cityName);
+
+        let latitude = response.coord.lat;
+            let longitude = response.coord.lon;
+            let uvIndexURL = "https://api.openweathermap.org/data/2.5/uvi?" + APIKey + "&lat=" + latitude + "&lon=" + longitude;
+            $.ajax({
+                type: "GET",
+                url: uvIndexURL,
+            }).then(function (responseUV) {
+                let currentUV = $("<div>").addClass('lead uv-index').text("UV Index: ");
+                let uvValue = $("<span class='badge id='current-uv-level'>").text(responseUV.value);
+                currentUV.append(uvValue);
+                if (responseUV.value >= 0 && responseUV.value < 3) {
+                    $(uvValue).addClass("badge-success");
+                } else if (responseUV.value >= 3 && responseUV.value < 6) {
+                    $(uvValue).addClass("badge-mild");
+                } else if (responseUV.value >= 6 && responseUV.value < 8) {
+                    $(uvValue).addClass("badge-warning");
+                } else if (responseUV.value >= 8 && responseUV.value < 11) {
+                    $(uvValue).addClass("badge-veryhigh");
+                } else if (responseUV.value >= 11) {
+                    $(uvValue).addClass("badge-danger");
+                }
+                cityName.append(currentUV);
+                renderSearchList();
+            })
+
+            //start 5 day forecast ajax
+            let day5QueryURL = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitude + "&lon=" + longitude + "&units=imperial" + APIKey;
+
+            for (let i = 1; i < 6; i++) {
+                $.ajax({
+                    url: day5QueryURL,
+                    type: "GET"
+                }).then(function (response5Day) {
+                    let cardbodyElem = $("<div>").addClass("card-body");
+
+                    let fiveDayCard = $("<div>").addClass(".cardbody");
+                    let fiveDate = $("<h5>").text(moment.unix(response5Day.daily[i].dt).format("MM/DD/YYYY"));
+                    fiveDayCard.addClass("headline");
+
+                    let fiveDayTemp = $("<p>").text("Temp: " + response5Day.daily[i].temp.max + "°");
+                    fiveDayTemp.attr("id", "#fiveDayTemp[i]");
+
+                    let fiveHumidity = $("<p>").attr("id", "humDay").text("Humidity: " + JSON.stringify(response5Day.daily[i].humidity) + "%");
+                    fiveHumidity.attr("id", "#fiveHumidity[i]");
+
+                    let iconCode = response5Day.daily[i].weather[0].icon;
+                    let iconURL = "https://openweathermap.org/img/w/" + iconCode + ".png";
+                    let weatherImgDay = $("<img>").attr("src", iconURL);
+                    $("#testImage").attr("src", iconURL);
+
+                    cardbodyElem.append(fiveDate);
+                    cardbodyElem.append(weatherImgDay);
+                    cardbodyElem.append(fiveDayTemp);
+                    cardbodyElem.append(fiveHumidity);
+                    fiveDayCard.append(cardbodyElem);
+                    $("#five-day").append(fiveDayCard);
+                    $("#fiveDayTemp[i]").empty();
+                    $(".jumbotron").append(cardbodyElem);
+                })
+            }
+            $("#search").val("");
+
+        })
+
+    }
+    $(document).on("click", ".city-btn", function () {
+        JSON.parse(localStorage.getItem("cities"));
+        let citySearch = $(this).text();
+        triggerSearch(citySearch);
+    });
+
+    function renderSearchList() {
+        let searchList = JSON.parse(localStorage.getItem("cities"));
+        $("#search-list").empty();
+        if (searchList) {
+            for (i = 0; i < searchList.length; i++) {
+                let listBtn = $("<button>").addClass("btn btn-secondary city-btn").attr('id', 'cityname_' + (i + 1)).text(searchList[i]);
+                let listElem = $("<li>").attr('class', 'list-group-item');
+                listElem.append(listBtn);
+                $("#search-list").append(listElem);
+            }
+
+        }
+
+    }
+
+})
