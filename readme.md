@@ -1,0 +1,3 @@
+This is a weather dashboard application to tell me today's weather and 5 day future forecast for a city that I search. Data included in the forecast is windspeed, humidity, Temp in fahrenheit, and UV index level with badge indicating safety level.
+
+It was built with HTML, CSS, JS, Bootstrap, OpenWeather Api's for weather data, moment js for date information and Google fonts api. Weather symbol pulled in from openweather api.
